@@ -1,19 +1,27 @@
 package com.scm.model;
 
 import java.io.Serializable;
-import java.util.List;
+import java.sql.Timestamp;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import javax.persistence.Id;
-import javax.persistence.Persistence;
+import javax.persistence.NamedNativeQueries;
+import javax.persistence.NamedNativeQuery;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
-import javax.persistence.TypedQuery;
 
 @Entity
 @Table(name = "ANNOUNCEMENTS")
+@NamedQueries({
+		@NamedQuery(name = "findAllAnnouncements", query = "SELECT o FROM Announcement o ORDER BY o.eventDate DESC") })
+@NamedNativeQueries({
+		@NamedNativeQuery(name = "getAnnouncementPaginationCount", query = "SELECT CASE  "
+				+ "WHEN COUNT(results.ID) / ?1 BETWEEN 0 AND 1 THEN 1 ELSE FLOOR( COUNT(results.ID) / ?1) END FROM "
+				+ "(SELECT inner_anc.ID, ROWNUM rnum FROM ANNOUNCEMENTS inner_anc WHERE ROWNUM <= ((?1 * ?2) + ?3) ORDER BY inner_anc.EVENT_DATE DESC) results "
+				+ "WHERE results.rnum > ?3"),
+		@NamedNativeQuery(name = "findImgBlobById", query = "SELECT IMG_BLOB FROM ANNOUNCEMENT_IMG WHERE ID = ?1") })
 public class Announcement implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -27,6 +35,15 @@ public class Announcement implements Serializable {
 
 	@Column(name = "TITLE")
 	private String title;
+
+	@Column(name = "EVENT_DATE")
+	private Timestamp eventDate;
+
+	@Column(name = "IMG_PATH")
+	private String imgPath;
+
+	@Column(name = "IMG_ID")
+	private Long imgId;
 
 	public Long getId() {
 		return id;
@@ -44,23 +61,35 @@ public class Announcement implements Serializable {
 		this.body = body;
 	}
 
+	public Long getImgId() {
+		return imgId;
+	}
+
+	public void setImgId(Long imgId) {
+		this.imgId = imgId;
+	}
+
+	public Timestamp getEventDate() {
+		return eventDate;
+	}
+
+	public void setEventDate(Timestamp eventDate) {
+		this.eventDate = eventDate;
+	}
+
+	public String getImgPath() {
+		return imgPath;
+	}
+
+	public void setImgPath(String imgPath) {
+		this.imgPath = imgPath;
+	}
+
 	public String getTitle() {
 		return title;
 	}
 
 	public void setTitle(String title) {
 		this.title = title;
-	}
-
-	public static void main(String[] args) {
-		EntityManagerFactory emf = Persistence.createEntityManagerFactory("LLScoutMaster");
-		EntityManager em = emf.createEntityManager();
-
-		TypedQuery<Announcement> query = em.createQuery("SELECT o FROM Announcement o", Announcement.class);
-		List<Announcement> results = query.getResultList();
-
-		for (Announcement oneResult : results) {
-			System.out.println("RESULT ID: " + oneResult.getId());
-		}
 	}
 }

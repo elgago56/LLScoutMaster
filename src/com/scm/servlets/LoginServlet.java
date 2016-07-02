@@ -1,4 +1,4 @@
-package com.scm;
+package com.scm.servlets;
 
 import java.io.IOException;
 
@@ -12,13 +12,18 @@ public class LoginServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
 	@Override
+	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
+		doPost(req, resp);
+	}
+
+	@Override
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 		String username = request.getParameter("user");
 		String password = request.getParameter("pass");
 		try {
 			request.login(username, password);
 		} catch (ServletException e) {
-			request.getRequestDispatcher("/index.jsp?login_failed=true").forward(request, response);
+			request.setAttribute("failed", true);
 		}
 
 		request.getRequestDispatcher("/").forward(request, response);
